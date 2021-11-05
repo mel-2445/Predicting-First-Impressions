@@ -5,3 +5,4 @@ scipy
 tensorflow
 opencv-contrib-python
 clint
+imageio

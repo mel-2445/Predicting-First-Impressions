@@ -1,3 +1,5 @@
+from __future__ import annotations
+import csv
 import matplotlib
 matplotlib.use('Agg')
 import pandas as pd
@@ -17,7 +19,7 @@ def parse_csv(CSV):
 
 
 def load_data_into_memory(DIR, ANNO, ATTRIBUTE, normalize=True, rollaxis=True):
-    if DIR[:-1] != '/': DIR += '/'
+    if DIR[:-1] != '/': DIR
     df = parse_csv(ANNO)
     files = filter(lambda x: x in df.index.values, os.listdir(DIR))
     X, y = [], []
@@ -34,9 +36,32 @@ def load_data_into_memory(DIR, ANNO, ATTRIBUTE, normalize=True, rollaxis=True):
     y = np.float32(y / max(y))
 
     x, y = np.array(X), np.array(y)
-    print 'Loaded {} images into memory'.format(len(y))
+    print(f'Loaded {len(y)} images into memory')
     return x, y
 
+def load_images(img_dir, img_csv, annotations_csv, normalize=False, rollaxis=False):
+    """
+    @img_dir - directory containing the images
+    @img_csv - csv listing the images to load
+    """
+    annotations = pd.read_csv(annotations_csv)
+    X, y = [], []
+    with open(img_csv, newline='') as csv_file:
+        images = csv.reader(csv_file)
+        for row in images:
+            try:
+                img = np.array(imageio.imread(f'{img_dir}/{row[0]}')).astype(np.float32)
+            except FileNotFoundError:
+                # Some of the images listed in the txt files are missing
+                # who cares?
+                continue
+            if normalize: img = img / 255.0
+            if rollaxis: img.shape = (1,150,130)
+            X.append(img)
+            y.append(annotations.loc[annotations.iloc[:,0] == row[0]]) # yuck...
+    x, y = np.array(X), np.array(y)
+    print(f'Loaded {len(y)} images into memory')
+    return x, y
 
 def data_generator(x, y, batch_size, space, sampling_factor=3, sampling_intercept=2, weighted_sampling=False, augment=False):
     if weighted_sampling:
@@ -188,15 +213,19 @@ if __name__ == '__main__':
     VAL_DIR = 'Images/' + ATTRIBUTE + '/Validate/'
     TEST_DIR = 'Images/' + ATTRIBUTE + '/Test/'
 
-    SPACE_FILE = 'Spaces/' + ATTRIBUTE + '/' + ATTRIBUTE + '_space.json'
+    SPACE_FILE = f'./Spaces/{ATTRIBUTE}_space.json'
+    # SPACE_FILE = 'Spaces/' + ATTRIBUTE + '/' + ATTRIBUTE + '_space.json'
     MODEL_PATH = 'Models/' + ATTRIBUTE + '.h5'
 
     print('Loading Train Data')
-    Xtrain, ytrain = load_data_into_memory(DIR=TRAIN_DIR, ANNO=ANNO, ATTRIBUTE=ATTRIBUTE, normalize=False, rollaxis=False)
+    # Xtrain, ytrain = load_data_into_memory(DIR=TRAIN_DIR, ANNO=ANNO, ATTRIBUTE=ATTRIBUTE, normalize=False, rollaxis=False)
+    Xtrain, ytrain = load_images('./Images', f'./Annotations/{ATTRIBUTE}/test.txt', f'./Annotations/{ATTRIBUTE}/annotations.csv')
     print('Loading Train Data Again')
-    Xtrain_norm, ytrain_norm = load_data_into_memory(DIR=TRAIN_DIR, ANNO=ANNO, ATTRIBUTE=ATTRIBUTE, normalize=True, rollaxis=True)
+    Xtrain_norm, ytrain_norm = load_images('./Images', f'./Annotations/{ATTRIBUTE}/test.txt', f'./Annotations/{ATTRIBUTE}/annotations.csv', normalize=True, rollaxis=True)
+    # Xtrain_norm, ytrain_norm = load_data_into_memory(DIR=TRAIN_DIR, ANNO=ANNO, ATTRIBUTE=ATTRIBUTE, normalize=True, rollaxis=True)
     print('Loading Validation Data')
-    Xvalidate, yvalidate = load_data_into_memory(DIR=VAL_DIR, ANNO=ANNO, ATTRIBUTE=ATTRIBUTE, normalize=True, rollaxis=True)
+    Xvalidate, yvalidate = load_images('./Images', f'./Annotations/{ATTRIBUTE}/validate.txt', f'./Annotations/{ATTRIBUTE}/annotations.csv', normalize=True, rollaxis=True)
+    # Xvalidate, yvalidate = load_data_into_memory(DIR=VAL_DIR, ANNO=ANNO, ATTRIBUTE=ATTRIBUTE, normalize=True, rollaxis=True)
 
     with open(SPACE_FILE, 'r') as f:
         opt_params = json.load(f)
