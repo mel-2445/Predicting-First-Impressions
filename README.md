@@ -33,3 +33,10 @@ $ tar -xzf Spaces.tar.gz
 ```
 
 This will result in 3 new folders with the respective names of the archives.
+
+### Install python requirements
+
+```
+$ . venv/bin/activate
+(venv) $ pip install -r requirements.txt
+```
