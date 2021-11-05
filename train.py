@@ -148,7 +148,7 @@ def get_metrics(model, x, y):
 
 def train(Xtrain, ytrain, Xtrain_norm, ytrain_norm, Xvalidate, yvalidate, space):
     import sys
-    from keras.optimizers import RMSprop
+    from tensorflow.keras.optimizers import RMSprop
     from keras.callbacks import Callback
 
     class CorrelationEarlyStopping(Callback):
