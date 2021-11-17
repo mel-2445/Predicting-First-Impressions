@@ -1,5 +1,8 @@
 __pycache__/
+env/
 venv/
 Annotations/
 Images/
 Spaces/
+.ipynb_checkpoints/
+.vscode/

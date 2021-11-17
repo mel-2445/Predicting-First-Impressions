@@ -6,3 +6,6 @@ tensorflow
 opencv-contrib-python
 clint
 imageio
+scikit-learn
+notebook
+scikit-image
